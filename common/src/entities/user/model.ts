@@ -20,6 +20,7 @@ export const userValidationSchema: JSONSchemaType<UserValidation> = {
   properties: {
     username: { type: 'string' },
     telegramId: { type: 'string' },
+    allowed: { type: 'boolean', nullable: true },
   },
 };
 

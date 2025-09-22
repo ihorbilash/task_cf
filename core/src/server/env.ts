@@ -1,12 +1,16 @@
 import dotenv from 'dotenv';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import { fileURLToPath } from 'node:url';
 
-const ENV_FILE = path.join(import.meta.dirname.split(path.sep).slice(0, -2).join(path.sep), '.env');
+export function loadEnvs(): void {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const repoRoot = path.join(__dirname, '..', '..', '..');
+  const envFilePath = path.join(repoRoot, '.env');
 
-export function loadEnvs() {
-  dotenv.config({ path: ENV_FILE, override: false });
-  console.log('Envs loaded from:', ENV_FILE);
+  dotenv.config({ path: envFilePath, override: false });
+  console.log('Envs loaded from:', envFilePath);
 }
 
 export function required(variable?: string): string {
