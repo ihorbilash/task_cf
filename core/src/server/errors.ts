@@ -3,7 +3,7 @@ import {
   ExpressRequest,
   ExpressResponse,
   ExpressNextFunction,
-} from '@monorepo/core/src/api-server.js';
+} from '@monorepo/core/src/server/api-server.js';
 
 export function registerErrorHandler(app: ExpressInstance) {
   app.use((err: any, req: ExpressRequest, res: ExpressResponse, next: ExpressNextFunction) => {

@@ -2,8 +2,8 @@
   "name": "task_cf",
   "version": "1.0.0",
   "engines": {
-    "node": ">=20.18.0",
-    "npm": ">=10.5.0"
+    "node": ">=20.19.0",
+    "npm": ">=10.8.2"
   },
   "scripts": {
     "api:start:dev": "npm run start:dev --workspace apps/api",
@@ -19,15 +19,15 @@
     "apps/*"
   ],
   "devDependencies": {
-    "@types/node": "^22.7.5",
-    "@typescript-eslint/eslint-plugin": "8.9.0",
-    "@typescript-eslint/parser": "8.9.0",
-    "eslint": "9.12.0",
-    "eslint-config-prettier": "9.1.0",
-    "eslint-plugin-prettier": "5.2.1",
-    "prettier": "3.3.3",
-    "sass": "^1.89.2",
-    "tsx": "^4.19.1",
-    "typescript": "^5.6.3"
+    "@types/node": "^24.5.2",
+    "@typescript-eslint/eslint-plugin": "8.44.0",
+    "@typescript-eslint/parser": "8.44.0",
+    "eslint": "9.36.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-prettier": "5.5.4",
+    "prettier": "3.6.2",
+    "sass": "^1.93.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
   }
 }
