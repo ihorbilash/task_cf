@@ -11,6 +11,8 @@ import { registerMorgan } from '@monorepo/core/src/morgan.js';
 import { connectToDB } from '@monorepo/core/src/db/mongo.js';
 
 import { buildApiRoutes } from './routes/index.js';
+// Initialize bot service
+import '@monorepo/common/src/services/telegram-bot.service.js';
 
 const API_PORT = Number(required(env.API_PORT));
 
