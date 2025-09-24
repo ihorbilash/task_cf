@@ -5,12 +5,17 @@ import { createServer } from '@monorepo/core/src/server/api-server.js';
 import { registerCors } from '@monorepo/core/src/server/cors.js';
 import { registerHelmet } from '@monorepo/core/src/helmet.js';
 import { registerErrorHandler } from '@monorepo/core/src/server/errors.js';
+import { ErrorsHandler } from '@monorepo/core/src/errors.js';
 import { registerRoutes } from '@monorepo/core/src/server/routes.js';
 import { registerMorgan } from '@monorepo/core/src/morgan.js';
 
 import { connectToDB } from '@monorepo/core/src/db/mongo.js';
 
 import { buildApiRoutes } from './routes/index.js';
+
+const errorsHandler = new ErrorsHandler();
+errorsHandler.handleProcessErrors();
+
 // Initialize bot service
 import '@monorepo/common/src/services/telegram-bot.service.js';
 

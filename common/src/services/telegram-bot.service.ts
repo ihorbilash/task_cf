@@ -13,10 +13,14 @@ class TelegramBotService {
     private cloudflareService: CloudFlareService,
   ) {
     this.registerCommands();
+    this.bot.catch((err) => {
+      logger.error({ err }, 'Unhandled Telegram error');
+    });
     this.bot.launch();
     logger.info('Telegram bot started...');
   }
 
+  // here is all necessary commands
   registerCommands() {
     // Help command
     this.bot.command('help', (ctx) => {
@@ -24,6 +28,8 @@ class TelegramBotService {
       ctx.reply(
         [
           'Allowed commands:\n',
+          '/chatId',
+          '   ➝ Get the chat ID of the current chat.',
           '/registerDomain <domain>',
           '   ➝ Register a new domain in Cloudflare. Example: /registerDomain mydomain.com\n',
           `/addRecord <zoneId> <type> <name> <value>`,
@@ -49,8 +55,13 @@ class TelegramBotService {
         return;
       }
       const [domain] = args;
-      const zone = await this.cloudflareService.registerDomain(domain);
-      ctx.reply(`Domain ${domain} registered successfully. Additional info: ${JSON.stringify(zone)}`);
+      try {
+        const zone = await this.cloudflareService.registerDomain(domain);
+        ctx.reply(`Domain ${domain} registered successfully. Additional info: ${JSON.stringify(zone)}`);
+      } catch (error: any) {
+        logger.error({ error }, 'Failed to register domain');
+        ctx.reply(`Failed to register domain: ${error.message || 'unknown error'}`);
+      }
     });
 
     // Add DNS record command
@@ -113,6 +124,12 @@ class TelegramBotService {
         logger.error({ error }, 'Failed to delete record');
         ctx.reply(`Failed to delete record: ${error?.message || 'unknown error'}`);
       }
+    });
+
+    // Handle chat id
+    this.bot.command('chatId', (ctx) => {
+      const chatId = ctx.chat?.id;
+      ctx.reply('chat id: ' + chatId);
     });
   }
 

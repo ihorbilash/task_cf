@@ -8,8 +8,8 @@ export type RequestOptions = Cloudflare.RequestOptions;
 export type RecordEditParams = Cloudflare.DNS.RecordEditParams;
 export type RecordCreateParams = Cloudflare.DNS.RecordCreateParams;
 
-const CLOUDFLARE_TOKEN = required(env.CLOUDFLARE_TOKEN);
+const CLOUDFLARE_USER_API_TOKEN = required(env.CLOUDFLARE_USER_API_TOKEN);
 
 export const cloudflare = new Cloudflare({
-  apiToken: CLOUDFLARE_TOKEN,
+  apiToken: CLOUDFLARE_USER_API_TOKEN,
 });
