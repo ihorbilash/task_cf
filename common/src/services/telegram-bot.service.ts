@@ -2,14 +2,16 @@ import { bot, TelegrafInstance } from '@monorepo/core/src/bot.js';
 import { CloudFlareService, cloudFlareService } from './cloud-flare.service.js';
 import { logger } from '@monorepo/core/src/logger.js';
 import env, { required } from '@monorepo/core/src/server/env.js';
+import { userRepository, UserRepository } from '#entities/user/user.repository.js';
 
 const ALLOWED_CHAT_ID = Number(required(env.TELEGRAM_CHAT_ID));
 
 const ALLOWED_TYPES: string[] = ['A', 'AAAA', 'CNAME', 'MX', 'TXT', 'NS'];
 
-class TelegramBotService {
+export class TelegramBotService {
   constructor(
     private bot: TelegrafInstance,
+    private userRepository: UserRepository,
     private cloudflareService: CloudFlareService,
   ) {
     this.registerCommands();
@@ -21,15 +23,19 @@ class TelegramBotService {
   }
 
   // here is all necessary commands
-  registerCommands() {
+  private registerCommands() {
     // Help command
     this.bot.command('help', (ctx) => {
       if (!this.isAllowedChat(ctx)) return;
       ctx.reply(
         [
           'Allowed commands:\n',
-          '/chatId',
-          '   ➝ Get the chat ID of the current chat.',
+          '/chatInfo',
+          '   ➝ Get information about the current chat.',
+          '/askPermission',
+          '   ➝ Request access to use the bot (sends your chat and user info).',
+          '/help',
+          '   ➝ Show this help message.\n',
           '/registerDomain <domain>',
           '   ➝ Register a new domain in Cloudflare. Example: /registerDomain mydomain.com\n',
           `/addRecord <zoneId> <type> <name> <value>`,
@@ -57,7 +63,7 @@ class TelegramBotService {
       const [domain] = args;
       try {
         const zone = await this.cloudflareService.registerDomain(domain);
-        ctx.reply(`Domain ${domain} registered successfully. Additional info: ${JSON.stringify(zone)}`);
+        ctx.reply(`Domain ${domain} registered successfully. \n Additional info: ${JSON.stringify(zone)}`);
       } catch (error: any) {
         logger.error({ error }, 'Failed to register domain');
         ctx.reply(`Failed to register domain: ${error.message || 'unknown error'}`);
@@ -126,14 +132,41 @@ class TelegramBotService {
       }
     });
 
-    // Handle chat id
-    this.bot.command('chatId', (ctx) => {
+    // Request Access permission (added user to DB with allowed=false)
+    this.bot.command('askPermission', async (ctx) => {
+      const from = ctx.from;
+      const existingUser = await this.userRepository.findOne({
+        telegramId: from.id,
+      });
+
+      if (existingUser) {
+        ctx.reply(`You have already sent a request. Please wait for admin review.`);
+        return;
+      }
+
+      await this.userRepository.create({
+        username: from.username || '',
+        telegramId: from.id,
+        allowed: false,
+      });
+      ctx.reply(`Request sent successfully. Admin will review your request soon.`);
+    });
+
+    // Handle chat info
+    this.bot.command('chatInfo', (ctx) => {
       const chatId = ctx.chat?.id;
-      ctx.reply('chat id: ' + chatId);
+      const from = ctx.from;
+      const chat = ctx.chat;
+
+      ctx.reply(
+        `Chat ID: ${chatId}\n\n` +
+          `User Info: ${JSON.stringify(from, null, 2)}\n\n` +
+          `Chat Info: ${JSON.stringify(chat, null, 2)}`,
+      );
     });
   }
 
-  isAllowedChat(ctx: any): boolean {
+  private isAllowedChat(ctx: any): boolean {
     const chatId = ctx.chat?.id;
     if (chatId !== ALLOWED_CHAT_ID) {
       ctx.reply('You are not allowed to use this bot.');
@@ -142,17 +175,26 @@ class TelegramBotService {
     return true;
   }
 
-  parseArgs(text: string): string[] {
+  private isAllowedUser(ctx: any, telegramIds: number[]): boolean {
+    const userId = ctx.from?.id;
+    if (!telegramIds.includes(userId)) {
+      ctx.reply('You are not allowed to use this bot.');
+      return false;
+    }
+    return true;
+  }
+
+  private parseArgs(text: string): string[] {
     return text.trim().split(/\s+/).slice(1);
   }
 
-  isAllowedType(type: string): boolean {
+  private isAllowedType(type: string): boolean {
     return ALLOWED_TYPES.includes(String(type).toUpperCase());
   }
 
-  formatAllowedTypes(): string {
+  private formatAllowedTypes(): string {
     return ALLOWED_TYPES.join(', ');
   }
 }
 
-export const telegramBotService = new TelegramBotService(bot, cloudFlareService);
+export const telegramBotService = new TelegramBotService(bot, userRepository, cloudFlareService);

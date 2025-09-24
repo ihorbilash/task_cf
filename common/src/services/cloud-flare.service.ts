@@ -18,9 +18,6 @@ export class CloudFlareService {
       name: urlName,
       account: { id: CLOUDFLARE_ACCOUNT_ID },
     });
-
-    console.log('🚀 ~ CloudFlareService ~ createNewDomain ~ zone:', zone);
-
     return zone;
   }
 
@@ -28,10 +25,6 @@ export class CloudFlareService {
     const zone = await this.cloudflare.zones.get({
       zone_id: zoneId,
     });
-    console.log('🚀 ~ CloudFlareService ~ getZonesNs ~ zone:', zone);
-    // if (zone.status || zone.status === 'active') {
-    //   return zone.name_servers || [];
-    // }
     return zone.name_servers || [];
   }
 
@@ -39,6 +32,12 @@ export class CloudFlareService {
     const records = await this.cloudflare.dns.records.list({ zone_id: zoneId });
     console.log('🚀 ~ CloudFlareService ~ getListOfRecords ~ records:', records);
     return records.result;
+  }
+
+  async getZonesByDomainName(name: string): Promise<any> {
+    const zone = await this.cloudflare.zones.list(); //({ name }); //.then((zones) => zones.result.find((zone) => zone.name === name));
+    console.log('🚀 ~ CloudFlareService ~ getZonesByDomainName ~ zone:', zone);
+    return zone;
   }
 
   async addRecord(params: RecordCreateParams): Promise<void> {

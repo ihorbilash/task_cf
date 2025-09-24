@@ -1,7 +1,7 @@
 import { mongoose } from '@monorepo/core/src/db/mongo.js';
 import { UserData, UserDbModel, UserDbDocument } from './model.js';
 
-class UserRepository {
+export class UserRepository {
   create(data: UserData) {
     return UserDbModel.create(data);
   }

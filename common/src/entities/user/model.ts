@@ -5,7 +5,8 @@ export type UserData = {
   createdAt?: Date;
   updatedAt?: Date;
   username: string;
-  telegramId: string;
+  telegramId: number;
+  allowed: boolean;
 };
 
 export type UserValidation = Pick<UserData, 'username' | 'telegramId'>;
@@ -19,7 +20,7 @@ export const userValidationSchema: JSONSchemaType<UserValidation> = {
   required: ['username', 'telegramId'],
   properties: {
     username: { type: 'string' },
-    telegramId: { type: 'string' },
+    telegramId: { type: 'number' },
     allowed: { type: 'boolean', nullable: true },
   },
 };
@@ -27,7 +28,8 @@ export const userValidationSchema: JSONSchemaType<UserValidation> = {
 export const userDbSchema = new Schema<UserDbDocument>(
   {
     username: { type: String, required: true, index: true },
-    telegramId: { type: String },
+    telegramId: { type: Number },
+    allowed: { type: Boolean },
   },
   { timestamps: true },
 );
