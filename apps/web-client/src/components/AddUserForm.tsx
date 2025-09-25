@@ -19,7 +19,7 @@ export default function AddUserForm({ onSubmit, loading }: Props) {
         <Form.Item
           layout="vertical"
           name="username"
-          label="example: @telegramUserName"
+          label="example: telegramUserName"
           rules={[{ required: true, message: 'Username is required' }]}
         >
           <Input placeholder="Username" />
@@ -27,7 +27,7 @@ export default function AddUserForm({ onSubmit, loading }: Props) {
 
         <Form.Item>
           <Button type="primary" htmlType="submit" loading={loading}>
-            Add user
+            Change Permission
           </Button>
         </Form.Item>
       </Space>

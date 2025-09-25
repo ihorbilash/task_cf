@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { App as AntApp, Card, Flex, Typography } from 'antd';
 import UsersTable from '../components/UsersTable';
 import AddUserForm from '../components/AddUserForm';
-import { addedUserPermission, getAllUsers } from '../api/users';
+import { handleUserPermission, getAllUsers } from '../api/users';
 import type { ResponseUsers } from '@monorepo/api/src/routes/routers/getAllUsers';
 
 export default function UsersPage() {
@@ -16,7 +16,7 @@ export default function UsersPage() {
       setLoading(true);
       try {
         const data = await getAllUsers();
-        console.log('🚀 ~ UsersPage ~ data:', data);
+
         setUsers(data);
       } catch (err: any) {
         message.error(err?.message || 'Failed to load users');
@@ -26,24 +26,32 @@ export default function UsersPage() {
     })();
   }, [message]);
 
-  const handleAddPermission = async (v: { username: string }) => {
+  const changePermission = async (v: { username: string }) => {
     setSubmitting(true);
     try {
-      const created = await addedUserPermission(v);
-      setUsers((prev) => [created, ...prev]);
+      await handleUserPermission(v);
+
+      setUsers((prev) =>
+        prev.map((u) => {
+          if (u.username === v.username) {
+            return { ...u, allowed: !u.allowed };
+          }
+          return u;
+        }),
+      );
       message.success('User permission updated successfully');
     } catch (err: any) {
       message.error(err?.message || 'Failed to update user permission');
     } finally {
       setSubmitting(false);
     }
-  }; //width: '100vh'
+  };
 
   return (
     <Flex vertical gap={16} style={{ padding: 24 }}>
-      <Typography.Title level={3}>Allowed Users</Typography.Title>
+      <Typography.Title level={3}>Allowed Users Admin Panel</Typography.Title>
       <Card>
-        <AddUserForm onSubmit={handleAddPermission} loading={submitting} />
+        <AddUserForm onSubmit={changePermission} loading={submitting} />
       </Card>
       <Card>
         <UsersTable users={users} loading={loading} />

@@ -1,21 +1,12 @@
-import e, { Router } from 'express';
-import { ExpressRoute, ExpressRequest, ExpressResponse } from '@monorepo/core/src/server/api-server.js';
-import { userRepository } from '@monorepo/common/src/entities/user/user.repository.js';
+import { ExpressRoute, ExpressRequest, ExpressResponse, router } from '@monorepo/core/src/server/api-server.js';
 import { JSONSchemaType, validator } from '@monorepo/core/src/validation.js';
+
 import {
-  addPermissionToUserUseCase,
+  changePermissionToUserUseCase,
   ExecutionOptions,
 } from '@monorepo/common/src/usecases/add-permission-to-user.usecase.js';
 
 export type RequestUserBody = ExecutionOptions;
-
-export type ResponseUser = {
-  _id: string;
-  username: string;
-  telegramId: number;
-  createdAt?: string;
-  updatedAt?: string;
-};
 
 const requestBodySchema: JSONSchemaType<RequestUserBody> = {
   type: 'object',
@@ -30,14 +21,12 @@ export type ResponseUserData = {
 };
 
 export function createAddUserPermissionRouter(): ExpressRoute {
-  const router = Router();
-
   async function addUserPermission(req: ExpressRequest, res: ExpressResponse) {
     const isValid = validator.validate(requestBodySchema, req.body);
     if (!isValid) return res.status(400).json({ message: 'Invalid payload', errors: validator.errors });
     const { username } = req.body;
-    const permission = await addPermissionToUserUseCase.execute({ username });
-    res.status(201).json({ isUpdated: permission });
+    const status = await changePermissionToUserUseCase.execute({ username });
+    res.status(201).json({ isUpdated: status });
   }
 
   router.post('/api/update-user', addUserPermission);

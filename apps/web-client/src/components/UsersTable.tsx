@@ -8,7 +8,12 @@ export default function UsersTable({ users, loading }: Props) {
   const columns: ColumnsType<ResponseUsers> = [
     { title: 'Username', dataIndex: 'username', key: 'username' },
     { title: 'Telegram ID', dataIndex: 'telegramId', key: 'telegramId' },
-    { title: 'Allowed', dataIndex: 'allowed', key: 'allowed', render: (allowed) => (allowed ? 'Yes' : 'No') },
+    {
+      title: 'Allowed to Use Cloudflare Bot',
+      dataIndex: 'allowed',
+      key: 'allowed',
+      render: (allowed) => (allowed ? 'Yes' : 'No'),
+    },
   ];
 
   return <Table rowKey="telegramId" dataSource={users} columns={columns} loading={loading} pagination={false} />;

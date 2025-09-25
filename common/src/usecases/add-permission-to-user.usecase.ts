@@ -3,13 +3,19 @@ import { userRepository, UserRepository } from '#entities/user/user.repository.j
 export type ExecutionOptions = {
   username: string;
 };
-class AddPermissionToUserUseCase {
+class ChangePermissionToUserUseCase {
   constructor(private userRepository: UserRepository) {}
 
   async execute({ username }: ExecutionOptions) {
-    const user = await this.userRepository.updateOne({ username }, { allowed: true });
-    return !!user.modifiedCount;
+    const result = await this.userRepository.updateOne({ username }, [
+      {
+        $set: {
+          allowed: { $not: '$allowed' },
+        },
+      },
+    ]);
+    return !!result.modifiedCount;
   }
 }
 
-export const addPermissionToUserUseCase = new AddPermissionToUserUseCase(userRepository);
+export const changePermissionToUserUseCase = new ChangePermissionToUserUseCase(userRepository);
