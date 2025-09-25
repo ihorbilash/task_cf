@@ -30,12 +30,12 @@ export class TelegramBotService {
       ctx.reply(
         [
           'Allowed commands:\n',
-          '/chatInfo',
-          '   ➝ Get information about the current chat.',
-          '/askPermission',
-          '   ➝ Request access to use the bot (sends your chat and user info).',
           '/help',
           '   ➝ Show this help message.\n',
+
+          '/askPermission',
+          '   ➝ Request access to use the Cloudflare bot.',
+
           '/registerDomain <domain>',
           '   ➝ Register a new domain in Cloudflare. Example: /registerDomain mydomain.com\n',
           `/addRecord <zoneId> <type> <name> <value>`,
@@ -43,8 +43,10 @@ export class TelegramBotService {
           '   name: subdomain or @ for root (e.g. www)',
           '   value: IP address or target value (e.g. 192.168.0.1)',
           '   Example: /addRecord <zoneId> A www 192.168.0.1\n',
+
           '/updateRecord <zoneId> <recordId> <newValue>',
           '   ➝ Update an existing DNS record. Example: /updateRecord <zoneId> 123456789 203.0.113.10\n',
+
           '/deleteRecord <zoneId> <recordId>',
           '   ➝ Delete a DNS record. Example: /deleteRecord <zoneId> 123456789',
         ].join('\n'),
@@ -54,6 +56,7 @@ export class TelegramBotService {
     // Register domain command
     this.bot.command('registerDomain', async (ctx) => {
       if (!this.isAllowedChat(ctx)) return;
+      if (!(await this.isAllowedUser(ctx))) return;
       const text = ctx.message.text;
       const args = this.parseArgs(text);
       if (args.length !== 1) {
@@ -73,6 +76,7 @@ export class TelegramBotService {
     // Add DNS record command
     this.bot.command('addRecord', async (ctx) => {
       if (!this.isAllowedChat(ctx)) return;
+      if (!(await this.isAllowedUser(ctx))) return;
       const text = ctx.message.text;
       const args = this.parseArgs(text);
       if (args.length !== 4) {
@@ -97,6 +101,7 @@ export class TelegramBotService {
     // Update DNS record command
     this.bot.command('updateRecord', async (ctx) => {
       if (!this.isAllowedChat(ctx)) return;
+      if (!(await this.isAllowedUser(ctx))) return;
       const text = ctx.message.text;
       const args = this.parseArgs(text);
       if (args.length !== 3) {
@@ -116,6 +121,7 @@ export class TelegramBotService {
     // Delete DNS record command
     this.bot.command('deleteRecord', async (ctx) => {
       if (!this.isAllowedChat(ctx)) return;
+      if (!(await this.isAllowedUser(ctx))) return;
       const text = ctx.message.text;
       const args = this.parseArgs(text);
       if (args.length !== 2) {
@@ -140,6 +146,10 @@ export class TelegramBotService {
       });
 
       if (existingUser) {
+        if (existingUser.allowed) {
+          ctx.reply(`You already have access to use this bot.`);
+          return;
+        }
         ctx.reply(`You have already sent a request. Please wait for admin review.`);
         return;
       }
@@ -150,19 +160,6 @@ export class TelegramBotService {
         allowed: false,
       });
       ctx.reply(`Request sent successfully. Admin will review your request soon.`);
-    });
-
-    // Handle chat info
-    this.bot.command('chatInfo', (ctx) => {
-      const chatId = ctx.chat?.id;
-      const from = ctx.from;
-      const chat = ctx.chat;
-
-      ctx.reply(
-        `Chat ID: ${chatId}\n\n` +
-          `User Info: ${JSON.stringify(from, null, 2)}\n\n` +
-          `Chat Info: ${JSON.stringify(chat, null, 2)}`,
-      );
     });
   }
 
@@ -175,9 +172,14 @@ export class TelegramBotService {
     return true;
   }
 
-  private isAllowedUser(ctx: any, telegramIds: number[]): boolean {
+  private async isAllowedUser(ctx: any): Promise<boolean> {
     const userId = ctx.from?.id;
-    if (!telegramIds.includes(userId)) {
+
+    const user = await this.userRepository.findOne({
+      telegramId: userId,
+    });
+
+    if (!user || !user.allowed) {
       ctx.reply('You are not allowed to use this bot.');
       return false;
     }
